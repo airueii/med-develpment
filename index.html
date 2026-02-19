@@ -26,11 +26,13 @@
     <!-- Fuentes modernas -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preload" href="styles/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="styles/style.css"></noscript>
     <link rel="manifest" href="manifest.json">
 </head>
-<body>
+<body class="bg-gray-900 text-white font-sans">
     <!-- Canvas para partículas (fondo interactivo) -->
     <canvas id="particle-canvas"></canvas>
 
@@ -87,6 +89,74 @@
         </div>
     </section>
 
+    <!-- Sección de Documentos PDF (Botones para Modales) -->
+    <section id="documentos-pdf" class="max-w-4xl mx-auto my-12 p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl relative z-10">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-pink-300">Documentos Importantes</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Botón Documento 1 -->
+            <button onclick="openPdfModal(1)" class="group relative p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-blue-400/50 transition-all duration-300 text-center overflow-hidden">
+                <div class="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <i class="fas fa-file-pdf text-5xl text-blue-400 mb-4 block"></i>
+                <span class="text-xl font-bold text-blue-100 block">Consentimiento Informado</span>
+                <p class="text-blue-300/60 text-sm mt-2">Click para visualizar y descargar</p>
+            </button>
+
+            <!-- Botón Documento 2 -->
+            <button onclick="openPdfModal(2)" class="group relative p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-pink-400/50 transition-all duration-300 text-center overflow-hidden">
+                <div class="absolute inset-0 bg-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <i class="fas fa-file-medical text-5xl text-pink-400 mb-4 block"></i>
+                <span class="text-xl font-bold text-pink-100 block">Interrogatorio Pediátrico</span>
+                <p class="text-pink-300/60 text-sm mt-2">Click para visualizar y descargar</p>
+            </button>
+        </div>
+    </section>
+
+    <!-- Estructura del Modal Reutilizable -->
+    <div id="pdf-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-2 md:p-6">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/85 backdrop-blur-md" onclick="closePdfModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-5xl bg-[#0d1117] border border-white/10 rounded-3xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 md:p-6 border-b border-white/10 bg-white/5">
+                <h3 id="modal-title" class="text-xl md:text-2xl font-bold text-blue-100 truncate pr-4">Visualizador de Documento</h3>
+                <button onclick="closePdfModal()" class="text-gray-400 hover:text-white transition-colors p-2 shrink-0">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- PDF Viewer Body (SCROLLABLE AREA) -->
+            <div id="modal-body" class="flex-1 overflow-y-auto p-4 md:p-10 bg-black/40 custom-scrollbar">
+                <div id="pdf-container" class="w-full flex justify-center bg-gray-800/10 rounded-xl p-2 md:p-4">
+                    <canvas id="modal-pdf-canvas" class="shadow-2xl max-w-full h-auto rounded-sm"></canvas>
+                </div>
+            </div>
+
+            <!-- Footer / Controls -->
+            <div class="p-4 md:p-6 border-t border-white/10 bg-white/5 flex flex-col sm:flex-row justify-between items-center gap-6">
+                <!-- Pagination -->
+                <div class="flex items-center gap-4 bg-white/10 p-2 rounded-2xl border border-white/10 shrink-0">
+                    <button id="modal-prev-page" class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 p-2.5 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fas fa-arrow-left px-1"></i>
+                    </button>
+                    <span class="text-base md:text-lg font-bold text-white tabular-nums min-w-[120px] text-center">
+                        <span id="modal-current-page">0</span> / <span id="modal-total-pages">0</span>
+                    </span>
+                    <button id="modal-next-page" class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 p-2.5 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fas fa-arrow-right px-1"></i>
+                    </button>
+                </div>
+
+                <!-- Action Button -->
+                <a id="modal-download-btn" href="#" target="_blank" class="w-full sm:w-auto flex items-center justify-center gap-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3.5 px-10 rounded-2xl shadow-xl transition-all hover:-translate-y-1 active:scale-95 uppercase tracking-wider text-sm">
+                    <i class="fas fa-download"></i> Descargar Documento
+                </a>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="contact-info">
             <h3>Dra. Itzel Estefanía Medina Salgado</h3>
@@ -100,7 +170,10 @@
         </div>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
     <script src="js/script.js" defer></script>
+    <script src="js/pdf-viewer.js" defer></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
