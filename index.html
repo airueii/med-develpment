@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedPed - Dra. Itzel Medina Salgado</title>
+    <!-- Fuentes modernas -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at 30% 50%, #0b0f1e, #030514);
+            color: #eef5ff;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Canvas de partículas (fondo futurista) */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Efecto glass general */
+        .glass {
+            background: rgba(20, 30, 50, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(120, 200, 255, 0.2);
+        }
+
+        /* Header mejorado */
+        header {
+            margin: 20px;
+            padding: 20px;
+            background: rgba(10, 20, 30, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 50px;
+            box-shadow: 0 0 40px rgba(0, 160, 255, 0.3);
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-container img {
+            max-width: 150px;
+            filter: drop-shadow(0 0 20px cyan) brightness(1.2);
+            transition: transform 0.4s ease, filter 0.4s;
+        }
+
+        .logo-container img:hover {
+            transform: scale(1.1) rotate(2deg);
+            filter: drop-shadow(0 0 30px magenta) brightness(1.4);
+        }
+
+        h1.site-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #a5f0ff, #ffb3ff, #a5f0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(0,255,255,0.7);
+            letter-spacing: 3px;
+        }
+
+        header p {
+            font-size: 1.3rem;
+            color: #b0f0ff;
+            text-shadow: 0 0 15px blue;
+        }
+
+        /* Zonas divididas con efecto portal */
+        .hero-split {
+            display: flex;
+            height: 60vh;
+            width: 100%;
+            margin: 20px 0;
+            gap: 15px;
+            padding: 0 20px;
+        }
+
+        .zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+            border-radius: 40px;
+            border: 2px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,200,255,0.3);
+        }
+
+        .zone::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 40px;
+            padding: 2px;
+            background: linear-gradient(45deg, #ff00cc, #3333ff, #00ffcc, #ff00cc);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.6s;
+        }
+
+        .zone:hover::before {
+            opacity: 1;
+        }
+
+        .zone:hover {
+            flex: 1.5;
+            transform: translateY(-10px);
+            box-shadow: 0 0 80px cyan;
+        }
+
+        .princess-zone {
+            background: linear-gradient(145deg, #ff99cc88, #ff66aabb);
+        }
+        .hero-zone {
+            background: linear-gradient(145deg, #66ccff88, #3366ffbb);
+        }
+
+        .zone i {
+            font-size: 100px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 30px currentColor);
+            transition: transform 0.3s;
+        }
+        .princess-zone i { color: #ffb3ff; text-shadow: 0 0 30px magenta; }
+        .hero-zone i { color: #99ffff; text-shadow: 0 0 30px cyan; }
+
+        .zone h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 30px;
+            border-radius: 60px;
+            backdrop-filter: blur(5px);
+            border: 1px solid white;
+            letter-spacing: 3px;
+        }
+
+        .zone p {
+            font-size: 1.2rem;
+            max-width: 300px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 20px;
+        }
+
+        /* Botón Instagram con neón */
+        .social-btn {
+            display: inline-block;
+            margin: 30px auto;
+            padding: 18px 50px;
+            border-radius: 60px;
+            background: linear-gradient(45deg, #f09433, #dc2743, #cc2366, #bc1888);
+            background-size: 300% 300%;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-decoration: none;
+            box-shadow: 0 0 30px #f09433, 0 0 60px #dc2743;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            z-index: 3;
+            animation: gradientShift 5s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .social-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 0 50px #ff66aa, 0 0 90px #ff3388;
+        }
+
+        /* Sección de agenda con glass */
+        .agenda-section {
+            padding: 50px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            background: rgba(10, 20, 40, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(100, 200, 255, 0.5);
+            border-radius: 50px;
+            box-shadow: 0 0 80px rgba(0, 200, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .calendar-container { grid-template-columns: 1fr; }
+            .hero-split { flex-direction: column; height: auto; }
+            .zone { height: 40vh; }
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.05);
+            padding: 15px 20px;
+            border-radius: 60px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            transition: 0.3s;
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 20px cyan;
+        }
+        .calendar-header button:hover {
+            background: cyan;
+            color: black;
+            box-shadow: 0 0 40px white;
+        }
+
+        #month-year {
+            font-size: 2rem;
+            font-weight: 600;
+            text-shadow: 0 0 20px magenta;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-header {
+            font-weight: 700;
+            color: #aaffff;
+            text-transform: uppercase;
+            font-size: 1rem;
+            text-shadow: 0 0 10px cyan;
+        }
+
+        .day {
+            padding: 15px 5px;
+            background: rgba(30, 40, 60, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .day:hover {
+            background: rgba(80, 180, 255, 0.3);
+            border-color: cyan;
+            box-shadow: 0 0 20px cyan;
+            transform: scale(1.05);
+        }
+
+        .current-day {
+            background: rgba(0, 200, 255, 0.5);
+            border: 2px solid white;
+            font-weight: bold;
+            box-shadow: 0 0 30px blue;
+        }
+
+        .has-event {
+            position: relative;
+            background: rgba(255, 150, 200, 0.3);
+            border-color: magenta;
+        }
+        .has-event::after {
+            content: "✨";
+            position: absolute;
+            bottom: 2px;
+            right: 5px;
+            font-size: 1rem;
+            filter: drop-shadow(0 0 5px magenta);
+        }
+
+        .event-list {
+            background: rgba(20, 20, 40, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 25px;
+            border-radius: 40px;
+            border: 1px solid rgba(200, 100, 255, 0.5);
+        }
+
+        .event-list h3 {
+            font-size: 2rem;
+            color: #ffccff;
+            border-bottom: 2px solid magenta;
+            display: inline-block;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px magenta;
+        }
+
+        .event-item {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 8px solid #ff66aa;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px rgba(255,0,255,0.2);
+            font-size: 1.1rem;
+        }
+
+        /* Footer cyber */
+        footer {
+            background: rgba(0, 10, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 2px solid cyan;
+            color: #b0f0ff;
+            padding: 50px 20px;
+            text-align: center;
+            margin-top: 80px;
+            box-shadow: 0 -20px 40px rgba(0,255,255,0.2);
+        }
+
+        .contact-info h3 {
+            font-size: 2rem;
+            background: linear-gradient(45deg, cyan, magenta);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .legal-info {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            border-top: 1px dashed cyan;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas para partículas (fondo interactivo) -->
+    <canvas id="particle-canvas"></canvas>
+
+    <header class="glass">
+        <div class="logo-container">
+            <img src="https://via.placeholder.com/150x150?text=MedPed" alt="Logo MedPed">
+        </div>
+        <h1 class="site-title">MedPed</h1>
+        <p>Atención pediátrica integral con calidez</p>
+    </header>
+
+    <div class="hero-split">
+        <div class="zone princess-zone">
+            <i class="fas fa-crown"></i>
+            <h2>Reino de Princesas</h2>
+            <p>Un espacio mágico para las pequeñas valientes</p>
+        </div>
+        <div class="zone hero-zone">
+            <i class="fas fa-car-side"></i>
+            <h2>Pista de Héroes</h2>
+            <p>Velocidad y fuerza para nuestros campeones</p>
+        </div>
+    </div>
+
+    <div style="text-align: center;">
+        <a href="https://www.instagram.com/_steffmedina?igsh=MW4zdDI0YXVwanlldA%3D%3D&utm_source=qr" class="social-btn" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-instagram"></i> Sígueme en Instagram
+        </a>
+    </div>
+
+    <section class="agenda-section">
+        <div class="calendar-container">
+            <div class="calendar-main">
+                <div class="calendar-header">
+                    <button id="prevMonth" aria-label="Mes anterior">&lt;</button>
+                    <h3 id="month-year">Febrero 2026</h3>
+                    <button id="nextMonth" aria-label="Mes siguiente">&gt;</button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Días generados por JS -->
+                </div>
+            </div>
+            <div class="event-list">
+                <h3>Agenda del día</h3>
+                <div id="events-container">
+                    <div class="event-item">10:00 AM - Consulta Control del Niño Sano</div>
+                    <div class="event-item">12:30 PM - Revisión de Recién Nacido</div>
+                    <div class="event-item">04:00 PM - Aplicación de Vacunas</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="contact-info">
+            <h3>Dra. Itzel Estefanía Medina Salgado</h3>
+            <p><i class="fas fa-stethoscope"></i> Especialista en Pediatría</p>
+            <p><i class="fas fa-phone"></i> Contacto: +52 3411226752</p>
+            <p><i class="fas fa-map-marker-alt"></i> Ciudad Guzmán, Jalisco, México</p>
+        </div>
+        <div class="legal-info">
+            <p>Cédula Profesional: 12345678 | Egresada de Universidad LAMAR, Av. Vallarta, Guadalajara, Jalisco.</p>
+            <p>© 2026 MedPed - Todos los derechos reservados. Cumple con lineamientos COFEPRIS.</p>
+        </div>
+    </footer>
+
+    <script>
+        // === FONDO DE PARTÍCULAS INTERACTIVO ===
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const PARTICLE_COUNT = 120;
+
+            function initCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+                particles = [];
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: (Math.random() - 0.5) * 0.2,
+                        size: Math.random() * 2 + 1,
+                        color: `rgba(${Math.floor(100 + Math.random()*155)}, ${Math.floor(100+Math.random()*155)}, 255, ${Math.random()*0.5+0.3})`
+                    });
+                }
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    // mover
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    // rebote suave en bordes
+                    if (p.x < 0 || p.x > width) p.vx *= -0.9;
+                    if (p.y < 0 || p.y > height) p.vy *= -0.9;
+                    // mantener dentro
+                    p.x = Math.min(width, Math.max(0, p.x));
+                    p.y = Math.min(height, Math.max(0, p.y));
+                });
+                requestAnimationFrame(drawParticles);
+            }
+
+            window.addEventListener('resize', () => {
+                initCanvas();
+            });
+
+            initCanvas();
+            drawParticles();
+
+            // efecto de mouse: atrae partículas suavemente
+            let mouseX = null, mouseY = null;
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            function applyMouseInfluence() {
+                if (mouseX !== null && mouseY !== null) {
+                    particles.forEach(p => {
+                        const dx = mouseX - p.x;
+                        const dy = mouseY - p.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 150) {
+                            const force = (150 - dist) / 150 * 0.2;
+                            p.vx += dx * force * 0.01;
+                            p.vy += dy * force * 0.01;
+                        }
+                    });
+                }
+                requestAnimationFrame(applyMouseInfluence);
+            }
+            applyMouseInfluence();
+        })();
+
+        // === CALENDARIO FUNCIONAL ===
+        (function() {
+            const monthYearEl = document.getElementById('month-year');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const prevBtn = document.getElementById('prevMonth');
+            const nextBtn = document.getElementById('nextMonth');
+            const eventsContainer = document.getElementById('events-container');
+
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const dayHeaders = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
+
+            const sampleEvents = [
+                { date: '2026-02-10', title: '10:00 AM - Control Niño Sano' },
+                { date: '2026-02-10', title: '12:30 PM - Revisión RN' },
+                { date: '2026-02-18', title: '04:00 PM - Vacunas' },
+                { date: '2026-02-25', title: '09:00 AM - Consulta desarrollo' }
+            ];
+
+            function renderCalendar(month, year) {
+                monthYearEl.textContent = `${months[month]} ${year}`;
+                calendarGrid.innerHTML = '';
+
+                dayHeaders.forEach(day => {
+                    const el = document.createElement('div');
+                    el.className = 'day-header';
+                    el.textContent = day;
+                    calendarGrid.appendChild(el);
+                });
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let i = 0; i < firstDay; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'day';
+                    empty.textContent = '';
+                    calendarGrid.appendChild(empty);
+                }
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day';
+                    dayCell.textContent = d;
+                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    dayCell.dataset.date = dateStr;
+
+                    const today = new Date();
+                    if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
+                        dayCell.classList.add('current-day');
+                    }
+
+                    if (sampleEvents.some(ev => ev.date === dateStr)) {
+                        dayCell.classList.add('has-event');
+                    }
+
+                    dayCell.addEventListener('click', function() {
+                        const selected = this.dataset.date;
+                        const eventsForDay = sampleEvents.filter(ev => ev.date === selected);
+                        eventsContainer.innerHTML = '';
+                        if (eventsForDay.length) {
+                            eventsForDay.forEach(ev => {
+                                const div = document.createElement('div');
+                                div.className = 'event-item';
+                                div.textContent = ev.title;
+                                eventsContainer.appendChild(div);
+                            });
+                        } else {
+                            eventsContainer.innerHTML = '<div class="event-item">No hay citas agendadas para este día.</div>';
+                        }
+                    });
+
+                    calendarGrid.appendChild(dayCell);
+                }
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentMonth === 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                } else {
+                    currentMonth--;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentMonth === 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                } else {
+                    currentMonth++;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+
+            renderCalendar(currentMonth, currentYear);
+
+            const todayStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(currentDate.getDate()).padStart(2,'0')}`;
+            const todayEvents = sampleEvents.filter(ev => ev.date === todayStr);
+            if (todayEvents.length) {
+                eventsContainer.innerHTML = '';
+                todayEvents.forEach(ev => {
+                    const div = document.createElement('div');
+                    div.className = 'event-item';
+                    div.textContent = ev.title;
+                    eventsContainer.appendChild(div);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
